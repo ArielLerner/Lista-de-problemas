@@ -1,12 +1,5 @@
-// La idea principal es hacer un knapsack
-// Aunque tiene un par de modificaciones
-// Sabiendo qeu hay 2 * sqrt(n) posibles numeros
-// 1. se hace un knapsack normal la primera pasada
-// 2. y despues se hace knapsack solo sobre los valores actualizados
-// y se repite esto por cada aparicion de un numero
-// Como la complejidad de el knapsack para las repeticiones es sz(updated) * apariciones 
-// Para hacer que hayan menos apariciones uso rand() para cambiar el orden de procesamiento del
-// knapsack, asi se encuentra el mejor caso un poco mas rapido
+// knapsack
+// optimizado dividiendo en modulos y usando deque para mantener los mejores indexes para actualizar
 #include <bits/stdc++.h>
 #define forr(i,a,b) for(int i = a; i < b; i++)
 #define forn(i,n) forr(i,0,n)
@@ -20,6 +13,8 @@ using ll = long long int;
 using par = pair<int,int>;
 using matriz = vector<vector<int>>;
 using hashmap = unordered_map<int,int>;
+#define vTop front().second
+#define iTop front().first
 matriz ady;
 vector<bool> done;
 int buscarC(int x){
@@ -44,7 +39,6 @@ bool isLucky(int x){
 }
 int main(){
     //freopen("C:/Users/Ari/Desktop/Proyectos/C++/input/stdin.txt","r",stdin);
-
     int n,m; cin >> n >> m;
     ady.resize(n);
     forn(i,m){
@@ -67,48 +61,36 @@ int main(){
             e.pb(par(i,el[i]));
         }
     }
-    // ahora voy a hacer swaps random para mejorar el worst case
-    srand(time(0));
-    forn(i,sz(e)){
-        int r1 = rand() % (sz(e));
-        int r2 = rand() % (sz(e));
-        swap(e[r1],e[r2]);
-    }
-    // ahora ya tengo los numeros del knapsack em (numero , cantidad)
-    // voy a hacer un knapsack pero a partir de la segunda vez que pase por un numero
-    // solo actualizo las posiciones que se actualizaron anteriormente
     int nada = 1e7;
     vector<int> knap(n+1,nada);
     knap[0] = -1;
     for(par p : e){
         int num = p.first;
         int q = p.second;
-        vector<int> updated;
-        vector<int> upNext;
-        forn(times,q){
-            if(times == 0){
-                // debo recorrer el knapsack completo
-                dforn(i,sz(knap) - num){
-                    int sig = num + i;
-                    if(knap[i] + 1 < knap[sig]){
-                        updated.push_back(sig);
-                        knap[sig] = knap[i] + 1;
-                    }
+        // aca voy a hacer la knap
+        // voy a dividir la knapsack en a % num
+        forn(mod, num){
+            deque<par> dq;
+                // guardo los i,q / knap[i * num + mod] = i,q
+                // los guardo ordenados de mas cercano a mas lejano y de peor a mejor
+            int i = 0;
+            while(num * i + mod < sz(knap)){
+                int act = num * i + mod;
+                int v = knap[act];
+                while(!dq.empty() && (v - dq.vTop) <= (i - dq.iTop)){
+                    dq.pop_front();
                 }
-            }
-            else{
-                // solo recorro updated
-                for(int x : updated){
-                    if(num + x >= sz(knap) ){continue;}
-                    int sig = num + x;
-                    if(knap[x] + 1 < knap[sig]){
-                        upNext.push_back(sig);
-                        knap[sig] = knap[x] + 1;
-                    }
+                dq.push_front(par(i,v));
+                // ahora voy a buscar la mejor posibilidad que esta en dq.back()
+                while(!dq.empty() &&  (i - dq.back().first) > q){
+                    dq.pop_back();
                 }
-                // swapeo updated
-                updated.clear();
-                swap(updated,upNext);
+                int iBack = dq.back().first;
+                int vBack = dq.back().second;
+                int rta = vBack +  (i - iBack);
+                knap[act] = min(knap[act],rta);
+                //
+                i++;
             }
         }
     }
