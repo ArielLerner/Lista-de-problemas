@@ -17,7 +17,6 @@ string toConciertos(vector<int> &e){
     string ans = "";
     forn(i,sz(e)){
         int x = e[i];
-        if(x == 0){continue;}
         if(i % 2 == 0){// para que todas las redondas deban ir al mismo lado
             ans += blanca; 
         }
