@@ -1,3 +1,4 @@
+//Funciona bien para todos los casos excpeto para el 11, que tarda un par de horas
 #pragma GCC optimize("Ofast,unroll-loops,inline")
 #pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt,fma")
 #include <iostream>
